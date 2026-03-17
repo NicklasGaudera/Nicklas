@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowkompass – Finde deine Berufung</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0F0F1A;
+            --bg-card: #1A1A2E;
+            --bg-card-hover: #1E1E35;
+            --text: #F1F5F9;
+            --text-muted: #94A3B8;
+            --border: rgba(255,255,255,0.08);
+            --radius: 16px;
+            --transition: 0.25s ease;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(15,15,26,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-logo { font-size: 1.2rem; font-weight: 700; }
+        .nav-back { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; cursor: pointer; background: none; border: none; transition: color var(--transition); }
+        .nav-back:hover { color: var(--text); }
+        .nav-progress-text { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* PROGRESS */
+        .progress-bar-container { height: 3px; background: rgba(255,255,255,0.08); }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #6366F1, #8B5CF6); transition: width 0.4s ease; border-radius: 999px; width: 0%; }
+
+        /* PAGES */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* HOME */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 5rem 2rem 4rem;
+        }
+        @media (max-width: 768px) { .hero { grid-template-columns: 1fr; padding: 3rem 1.5rem; } .hero-visual { display: none; } }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.3);
+            color: #A5B4FC;
+            padding: 0.35rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+        .hero-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.5rem; }
+        .gradient-text { background: linear-gradient(135deg, #6366F1, #8B5CF6, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 480px; margin-bottom: 2.5rem; line-height: 1.7; }
+
+        .hero-stats { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; }
+        .stat { text-align: center; }
+        .stat-num { display: block; font-size: 1.4rem; font-weight: 800; }
+        .stat-label { display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-divider { width: 1px; height: 40px; background: var(--border); }
+
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white; padding: 1rem 2rem; border-radius: 999px;
+            font-size: 1rem; font-weight: 700; text-decoration: none;
+            border: none; cursor: pointer; transition: all var(--transition);
+            box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
+        .hero-hint { margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* COMPASS */
+        .compass-container { position: relative; width: 380px; height: 380px; }
+        .compass { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .compass-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(99,102,241,0.2); animation: pulse 3s ease-in-out infinite; }
+        .compass-ring.outer { width: 240px; height: 240px; }
+        .compass-ring.middle { width: 160px; height: 160px; animation-delay: 0.5s; }
+        .compass-ring.inner { width: 80px; height: 80px; animation-delay: 1s; background: rgba(99,102,241,0.05); }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; transform: translate(-50%,-50%) scale(1); } 50% { opacity: 0.7; transform: translate(-50%,-50%) scale(1.03); } }
+        .compass-needle { font-size: 2.5rem; animation: spin 8s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+        @keyframes spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+        .type-pill { position: absolute; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+        .pill-1 { top: 10%; left: 50%; transform: translateX(-50%); }
+        .pill-2 { top: 50%; right: 0; transform: translateY(-50%); }
+        .pill-3 { bottom: 10%; left: 50%; transform: translateX(-50%); }
+        .pill-4 { top: 50%; left: 0; transform: translateY(-50%); }
+
+        /* TYPEN */
+        .typen-preview { background: var(--bg-card); border-top: 1px solid var(--border); padding: 5rem 2rem; }
+        .section-title { text-align: center; font-size: 2rem; font-weight: 800; margin-bottom: 3rem; letter-spacing: -0.02em; }
+        .typen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+        @media (max-width: 900px) { .typen-grid { grid-template-columns: repeat(2,1fr); } }
+        @media (max-width: 500px) { .typen-grid { grid-template-columns: 1fr; } }
+        .typ-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem 1.5rem; text-align: center; transition: all var(--transition); }
+        .typ-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.3); box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+        .typ-emoji { font-size: 2.5rem; margin-bottom: 1rem; }
+        .typ-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .typ-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+
+        /* TEST */
+        .test-main { max-width: 720px; margin: 0 auto; padding: 3rem 2rem; }
+        .question-slide { display: none; animation: fadeIn 0.35s ease; }
+        .question-slide.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .question-number { color: var(--text-muted); font-size: 0.85rem; }
+        .question-category { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #A5B4FC; padding: 0.2rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .question-text { font-size: clamp(1.3rem, 3vw, 1.7rem); font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; margin-bottom: 2.5rem; }
+
+        .options-grid { display: grid; gap: 1rem; margin-bottom: 2.5rem; }
+        .option-card { display: block; cursor: pointer; }
+        .option-card input[type="radio"] { display: none; }
+        .option-content { display: flex; align-items: flex-start; gap: 1rem; background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.5rem; transition: all var(--transition); }
+        .option-card:hover .option-content { border-color: rgba(99,102,241,0.4); background: var(--bg-card-hover); }
+        .option-card input:checked + .option-content { border-color: #6366F1; background: rgba(99,102,241,0.1); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+        .option-check { width: 24px; height: 24px; min-width: 24px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all var(--transition); margin-top: 0.1rem; }
+        .check-icon { color: white; font-size: 0.75rem; opacity: 0; transition: opacity var(--transition); }
+        .option-card input:checked + .option-content .option-check { background: #6366F1; border-color: #6366F1; }
+        .option-card input:checked + .option-content .check-icon { opacity: 1; }
+        .option-text { font-size: 1rem; line-height: 1.5; }
+
+        .question-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+        .btn-prev { background: transparent; border: 2px solid var(--border); color: var(--text-muted); padding: 0.7rem 1.5rem; border-radius: 999px; font-size: 0.95rem; cursor: pointer; transition: all var(--transition); }
+        .btn-prev:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+        .btn-next { background: var(--bg-card); border: 2px solid rgba(99,102,241,0.3); color: #A5B4FC; padding: 0.7rem 1.8rem; border-radius: 999px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all var(--transition); }
+        .btn-next:hover { background: rgba(99,102,241,0.15); border-color: #6366F1; color: white; }
+        .btn-submit { background: linear-gradient(135deg, #6366F1, #8B5CF6); border: none; color: white; padding: 0.9rem 2rem; border-radius: 999px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all var(--transition); box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
+
+        /* RESULT */
+        .result-hero { position: relative; padding: 5rem 2rem 4rem; text-align: center; overflow: hidden; }
+        .result-hero.typ-helfer { background: linear-gradient(135deg, #92400E, #B45309, #D97706); }
+        .result-hero.typ-schoepfer { background: linear-gradient(135deg, #4C1D95, #6D28D9, #7C3AED); }
+        .result-hero.typ-denker { background: linear-gradient(135deg, #1E3A5F, #1D4ED8, #3B82F6); }
+        .result-hero.typ-anfuehrer { background: linear-gradient(135deg, #7F1D1D, #B91C1C, #EF4444); }
+        .result-badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 0.35rem 1rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1rem; }
+        .result-emoji { font-size: 5rem; margin-bottom: 0.5rem; }
+        .result-name { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; letter-spacing: -0.03em; color: white; margin-bottom: 0.75rem; }
+        .result-tagline { font-size: 1.2rem; color: rgba(255,255,255,0.85); font-style: italic; }
+        .result-wave { position: absolute; bottom: -1px; left: 0; right: 0; line-height: 0; }
+
+        .result-content { max-width: 720px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+        .result-section { margin-bottom: 1.5rem; }
+        .result-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; }
+        .result-card h2 { font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .result-desc { font-size: 1.05rem; line-height: 1.75; }
+
+        .score-bars { display: flex; flex-direction: column; gap: 1rem; }
+        .score-row { display: grid; grid-template-columns: 140px 1fr 45px; align-items: center; gap: 1rem; }
+        .score-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; }
+        .score-bar-bg { height: 10px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 999px; transition: width 1s ease 0.3s; width: 0; }
+        .bar-helfer { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+        .bar-schoepfer { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+        .bar-denker { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+        .bar-anfuehrer { background: linear-gradient(90deg, #EF4444, #F87171); }
+        .score-pct { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-align: right; }
+
+        .berufe-grid { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+        .beruf-chip { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #A5B4FC; padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 500; }
+
+        .steps-list { display: flex; flex-direction: column; gap: 1rem; }
+        .step-item { display: flex; align-items: flex-start; gap: 1rem; }
+        .step-num { width: 32px; height: 32px; min-width: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; }
+        .step-text { font-size: 1rem; line-height: 1.6; padding-top: 0.35rem; }
+
+        .result-cta { text-align: center; padding-top: 1rem; }
+        .cta-hint { margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); }
+
+        .footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+        .no-answer-hint { color: #F87171; font-size: 0.85rem; margin-top: -1.5rem; margin-bottom: 1rem; text-align: center; }
+
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <button class="nav-back" id="navBack" onclick="goHome()" style="display:none">← Zurück</button>
+    <div style="display:none" id="navBackHome"></div>
+    <div class="nav-logo">🧭 Flowkompass</div>
+    <div class="nav-progress-text" id="progressText"></div>
+</nav>
+<div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<!-- PAGE: HOME -->
+<div class="page active" id="page-home">
+    <main class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Kostenloser Berufungskompass</div>
+            <h1 class="hero-title">Was ist deine<br><span class="gradient-text">Berufung?</span></h1>
+            <p class="hero-subtitle">In 8 Fragen entdeckst du deinen einzigartigen Typ – und welcher Weg dich wirklich erfüllen wird.</p>
+            <div class="hero-stats">
+                <div class="stat"><span class="stat-num">8</span><span class="stat-label">Fragen</span></div>
+                <div class="stat-divider"></div>
+                <div class="stat"><span class="stat-num">4</span><span class="stat-label">Berufungs-Typen</span></div>
+                <div class="stat-divider"></div>
+                <div class="stat"><span class="stat-num">3 Min</span><span class="stat-label">Dauer</span></div>
+            </div>
+            <button class="btn-primary" onclick="startTest()">Meinen Kompass starten <span>→</span></button>
+            <p class="hero-hint">Kostenlos · Kein Konto nötig · Sofortergebnis</p>
+        </div>
+        <div class="hero-visual">
+            <div class="compass-container">
+                <div class="compass">
+                    <div class="compass-ring outer"></div>
+                    <div class="compass-ring middle"></div>
+                    <div class="compass-ring inner"></div>
+                    <div class="compass-needle">🧭</div>
+                </div>
+                <div class="type-pill pill-1">💛 Herzmensch</div>
+                <div class="type-pill pill-2">🎨 Schöpfer</div>
+                <div class="type-pill pill-3">🔭 Weiser</div>
+                <div class="type-pill pill-4">🔥 Visionär</div>
+            </div>
+        </div>
+    </main>
+    <section class="typen-preview">
+        <h2 class="section-title">Die 4 Berufungs-Typen</h2>
+        <div class="typen-grid">
+            <div class="typ-card"><div class="typ-emoji">💛</div><h3>Der Herzmensch</h3><p>Du lebst auf, wenn du Menschen wirklich helfen kannst.</p></div>
+            <div class="typ-card"><div class="typ-emoji">🎨</div><h3>Der Schöpfer</h3><p>Du bringst Neues in die Welt – durch Kreativität und Vision.</p></div>
+            <div class="typ-card"><div class="typ-emoji">🔭</div><h3>Der Weise</h3><p>Du durchdringst komplexe Wahrheiten und machst sie sichtbar.</p></div>
+            <div class="typ-card"><div class="typ-emoji">🔥</div><h3>Der Visionär</h3><p>Du reißt andere mit und bringst große Ideen zum Leben.</p></div>
+        </div>
+    </section>
+    <footer class="footer"><p>🧭 Flowkompass – Dein Weg zu einem erfüllten Leben</p></footer>
+</div>
+
+<!-- PAGE: TEST -->
+<div class="page" id="page-test">
+    <main class="test-main" id="testContainer"></main>
+</div>
+
+<!-- PAGE: RESULT -->
+<div class="page" id="page-result">
+    <div id="resultContent"></div>
+    <footer class="footer"><p>🧭 Flowkompass – Dein Weg zu einem erfüllten Leben</p></footer>
+</div>
+
+<script>
+const QUESTIONS = [
+    { id:1, category:"Stärken", text:"Was tust du, wenn du ein schwieriges Problem lösen musst?", options:[
+        {text:"Ich analysiere alles systematisch und suche nach Mustern.", type:"denker"},
+        {text:"Ich spreche mit anderen und suche gemeinsam nach Lösungen.", type:"helfer"},
+        {text:"Ich probiere kreative, ungewöhnliche Ansätze.", type:"schoepfer"},
+        {text:"Ich übernehme die Initiative und organisiere einen Plan.", type:"anfuehrer"}
+    ]},
+    { id:2, category:"Werte", text:"Was ist dir bei deiner Arbeit am wichtigsten?", options:[
+        {text:"Menschen wirklich helfen und einen Unterschied machen.", type:"helfer"},
+        {text:"Etwas Neues erschaffen, das es vorher nicht gab.", type:"schoepfer"},
+        {text:"Tiefes Verstehen und Wissen aufbauen.", type:"denker"},
+        {text:"Große Visionen verwirklichen und andere mitreißen.", type:"anfuehrer"}
+    ]},
+    { id:3, category:"Leidenschaft", text:"Wofür verlierst du schnell das Zeitgefühl?", options:[
+        {text:"Wenn ich mit Menschen spreche und ihnen zuhöre.", type:"helfer"},
+        {text:"Wenn ich etwas gestalte – schreibe, zeichne, baue.", type:"schoepfer"},
+        {text:"Wenn ich lerne, forsche oder Zusammenhänge verstehe.", type:"denker"},
+        {text:"Wenn ich ein Projekt plane und ein Team koordiniere.", type:"anfuehrer"}
+    ]},
+    { id:4, category:"Stärken", text:"Wie reagieren andere Menschen auf dich?", options:[
+        {text:"Sie vertrauen mir ihre Sorgen an und suchen meinen Rat.", type:"helfer"},
+        {text:"Sie bewundern meine originellen Ideen und meinen Stil.", type:"schoepfer"},
+        {text:"Sie fragen mich um Rat bei komplexen Fragen.", type:"denker"},
+        {text:"Sie folgen meiner Führung und meinen Entscheidungen.", type:"anfuehrer"}
+    ]},
+    { id:5, category:"Werte", text:"Welche Aussage beschreibt dich am besten?", options:[
+        {text:"Ich fühle mich gut, wenn ich anderen wirklich geholfen habe.", type:"helfer"},
+        {text:"Ich brauche kreative Freiheit, sonst erstick ich.", type:"schoepfer"},
+        {text:"Ich muss Dinge verstehen – Halbwissen macht mich unruhig.", type:"denker"},
+        {text:"Ich will etwas bewegen und Verantwortung übernehmen.", type:"anfuehrer"}
+    ]},
+    { id:6, category:"Leidenschaft", text:"In welchem Umfeld blühst du am meisten auf?", options:[
+        {text:"Im direkten Kontakt mit Menschen, die meine Unterstützung brauchen.", type:"helfer"},
+        {text:"In einem kreativen Atelier, Studio oder inspirierenden Ort.", type:"schoepfer"},
+        {text:"In einer ruhigen Umgebung zum Denken, Lesen und Forschen.", type:"denker"},
+        {text:"Mitten im Geschehen, mit Energie, Dynamik und Gestaltungsspielraum.", type:"anfuehrer"}
+    ]},
+    { id:7, category:"Stärken", text:"Was ist deine größte Stärke?", options:[
+        {text:"Empathie – ich verstehe, was andere fühlen und brauchen.", type:"helfer"},
+        {text:"Originalität – ich sehe Dinge anders als die meisten.", type:"schoepfer"},
+        {text:"Präzision – ich analysiere gründlich und denke logisch.", type:"denker"},
+        {text:"Entschlossenheit – ich treffe Entscheidungen und handle.", type:"anfuehrer"}
+    ]},
+    { id:8, category:"Werte", text:"Was soll dein Lebenswerk einmal sein?", options:[
+        {text:"Vielen Menschen geholfen und ihr Leben verbessert haben.", type:"helfer"},
+        {text:"Etwas geschaffen haben, das die Welt berührt und inspiriert.", type:"schoepfer"},
+        {text:"Wissen vermehrt und Komplexes verständlich gemacht haben.", type:"denker"},
+        {text:"Eine Organisation, Bewegung oder Idee in die Welt gebracht haben.", type:"anfuehrer"}
+    ]}
+];
+
+const TYPEN = {
+    helfer: {
+        name:"Der Herzmensch", emoji:"💛", tagline:"Du bist geboren, um anderen Kraft zu geben.",
+        beschreibung:"Deine Berufung liegt im Dienst an Menschen. Du hast eine natürliche Empathie, spürst, was andere brauchen, und schenkst ihnen das Gefühl, wirklich gesehen zu werden. Du blühst auf, wenn du einen echten Unterschied im Leben anderer machen kannst.",
+        berufe:["Coach / Therapeutin","Arzt / Ärztin","Sozialarbeit","Lehrerin / Pädagoge","HR & People Development","Pflegefachkraft","Mediatorin","Seelsorge"],
+        schritte:["Finde eine Person, der du heute zuhörst – wirklich zuhörst.","Überlege: In welchem Bereich leidest du mit anderen mit?","Erkunde Coaching- oder Therapeutenausbildungen.","Frage Menschen in Helfer-Berufen nach ihrer Geschichte."]
+    },
+    schoepfer: {
+        name:"Der Schöpfer", emoji:"🎨", tagline:"Du bist geboren, um Neues in die Welt zu bringen.",
+        beschreibung:"Deine Berufung liegt im Erschaffen. Du siehst die Welt als leere Leinwand voller Möglichkeiten. Ob mit Worten, Bildern, Tönen oder Ideen – du hast den Drang, etwas Einzigartiges zu hinterlassen. Kreative Freiheit ist für dich kein Luxus, sondern Lebensnotwendigkeit.",
+        berufe:["Designer / UX Designerin","Schriftstellerin / Autor","Musikerin / Komponist","Architekt / Architektin","Filmemacherin","Markenstratege","Künstlerin","Content Creator"],
+        schritte:["Schaffe heute etwas – egal wie klein. Ein Bild, ein Text, eine Idee.","Finde heraus, welches Medium dich am meisten begeistert.","Zeige deine Werke – Sichtbarkeit ist Teil deiner Berufung.","Suche dir kreative Mentor:innen oder Communities."]
+    },
+    denker: {
+        name:"Der Weise", emoji:"🔭", tagline:"Du bist geboren, um Licht ins Dunkel zu bringen.",
+        beschreibung:"Deine Berufung liegt im Verstehen und Erkennen. Du kannst komplexe Zusammenhänge durchdringen, Muster erkennen, die andere übersehen, und Wissen so aufbereiten, dass es wirklich nützt. Die Welt braucht Menschen wie dich, die tiefgründig denken und klug handeln.",
+        berufe:["Wissenschaftlerin / Forscher","Strategieberatung","Data Scientist","Philosophin","Ärztin (Forschung)","Wirtschaftsanalyst","Professorin","Systemarchitekt"],
+        schritte:["Wähle ein Thema, das dich wirklich fasziniert – und tauche tief ein.","Schreibe auf, was du weißt – Schreiben schärft das Denken.","Finde deinen Bereich: Naturwissenschaft, Gesellschaft, Technik, Philosophie?","Suche dir einen Mentor in deinem Interessensgebiet."]
+    },
+    anfuehrer: {
+        name:"Der Visionär", emoji:"🔥", tagline:"Du bist geboren, um Bewegung in die Welt zu bringen.",
+        beschreibung:"Deine Berufung liegt im Gestalten großer Dinge. Du siehst, wie die Welt sein könnte, und hast den Mut und die Energie, andere für diese Vision zu begeistern. Du lebst auf, wenn du Verantwortung trägst, Entscheidungen triffst und Wirkung siehst.",
+        berufe:["Unternehmerin / Gründer","Führungskraft / CEO","Politikerin","Projektmanager","Eventmanagerin","Sozialunternehmerin","NGO-Leiterin","Produktmanagerin"],
+        schritte:["Identifiziere ein Problem, das dich wütend macht – und das du lösen willst.","Übernimm in einem Projekt die Leitung – auch im Kleinen.","Finde Mentor:innen, die bereits gebaut haben, was du dir vorstellst.","Lerne die Grundlagen: Finanzen, Kommunikation, Teamaufbau."]
+    }
+};
+
+let currentQ = 0;
+let answers = {};
+
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+function goHome() {
+    currentQ = 0; answers = {};
+    document.getElementById('navBack').style.display = 'none';
+    document.getElementById('progressText').textContent = '';
+    document.getElementById('progressBar').style.width = '0%';
+    showPage('home');
+}
+
+function startTest() {
+    currentQ = 0; answers = {};
+    renderQuestion(0);
+    document.getElementById('navBack').style.display = 'block';
+    showPage('test');
+}
+
+function renderQuestion(idx) {
+    const q = QUESTIONS[idx];
+    const total = QUESTIONS.length;
+    document.getElementById('progressText').textContent = `Frage ${idx+1} / ${total}`;
+    document.getElementById('progressBar').style.width = `${(idx / total) * 100}%`;
+
+    const container = document.getElementById('testContainer');
+    container.innerHTML = `
+        <div class="question-slide active">
+            <div class="question-header">
+                <span class="question-number">${idx+1} / ${total}</span>
+                <span class="question-category">${q.category}</span>
+            </div>
+            <h2 class="question-text">${q.text}</h2>
+            <div class="options-grid">
+                ${q.options.map((opt, i) => `
+                <label class="option-card" for="opt_${i}">
+                    <input type="radio" name="question" id="opt_${i}" value="${opt.type}">
+                    <div class="option-content">
+                        <div class="option-check"><span class="check-icon">✓</span></div>
+                        <p class="option-text">${opt.text}</p>
+                    </div>
+                </label>`).join('')}
+            </div>
+            <div class="question-nav">
+                ${idx > 0 ? `<button class="btn-prev" onclick="prevQuestion()">← Zurück</button>` : `<div></div>`}
+                ${idx < total-1
+                    ? `<button class="btn-next" onclick="nextQuestion()">Weiter →</button>`
+                    : `<button class="btn-submit" onclick="submitTest()">Mein Ergebnis anzeigen 🧭</button>`
+                }
+            </div>
+        </div>`;
+
+    // Restore previous answer
+    if (answers[idx] !== undefined) {
+        const radio = container.querySelector(`input[value="${answers[idx]}"]`);
+        if (radio) radio.checked = true;
+    }
+
+    // Auto-advance
+    container.querySelectorAll('input[type="radio"]').forEach(r => {
+        r.addEventListener('change', () => {
+            answers[idx] = r.value;
+            if (idx < total - 1) setTimeout(nextQuestion, 320);
+        });
+    });
+
+    // Keyboard
+    document.onkeydown = (e) => {
+        if (e.key === 'ArrowRight') nextQuestion();
+        if (e.key === 'ArrowLeft') prevQuestion();
+    };
+}
+
+function getSelected() {
+    const r = document.querySelector('input[name="question"]:checked');
+    return r ? r.value : null;
+}
+
+function nextQuestion() {
+    const sel = getSelected();
+    if (!sel) { shake(); return; }
+    answers[currentQ] = sel;
+    currentQ++;
+    if (currentQ < QUESTIONS.length) renderQuestion(currentQ);
+}
+
+function prevQuestion() {
+    if (currentQ > 0) { currentQ--; renderQuestion(currentQ); }
+}
+
+function shake() {
+    const slide = document.querySelector('.question-slide');
+    if (!slide) return;
+    slide.style.animation = 'none';
+    slide.offsetHeight;
+    slide.style.animation = 'shake 0.4s ease';
+    if (!document.querySelector('.no-answer-hint')) {
+        const msg = document.createElement('p');
+        msg.className = 'no-answer-hint';
+        msg.textContent = 'Bitte wähle eine Antwort aus.';
+        const nav = document.querySelector('.question-nav');
+        if (nav) nav.parentNode.insertBefore(msg, nav);
+        setTimeout(() => msg.remove(), 3000);
+    }
+}
+
+function submitTest() {
+    const sel = getSelected();
+    if (!sel) { shake(); return; }
+    answers[currentQ] = sel;
+
+    // Calculate scores
+    const scores = {helfer:0, schoepfer:0, denker:0, anfuehrer:0};
+    Object.values(answers).forEach(t => { if (scores[t] !== undefined) scores[t]++; });
+    const winner = Object.keys(scores).reduce((a,b) => scores[a] >= scores[b] ? a : b);
+    const total = Object.values(scores).reduce((a,b) => a+b, 0);
+    const pcts = {};
+    Object.keys(scores).forEach(k => pcts[k] = Math.round((scores[k]/total)*100));
+
+    renderResult(winner, scores, pcts);
+    document.getElementById('navBack').style.display = 'block';
+    document.getElementById('progressText').textContent = '';
+    document.getElementById('progressBar').style.width = '100%';
+    showPage('result');
+}
+
+function renderResult(winner, scores, pcts) {
+    const p = TYPEN[winner];
+    const typInfo = {
+        helfer:{emoji:'💛', name:'Herzmensch'},
+        schoepfer:{emoji:'🎨', name:'Schöpfer'},
+        denker:{emoji:'🔭', name:'Weiser'},
+        anfuehrer:{emoji:'🔥', name:'Visionär'}
+    };
+
+    document.getElementById('resultContent').innerHTML = `
+        <section class="result-hero typ-${winner}">
+            <div>
+                <div class="result-badge">Dein Berufungs-Typ</div>
+                <div class="result-emoji">${p.emoji}</div>
+                <h1 class="result-name">${p.name}</h1>
+                <p class="result-tagline">${p.tagline}</p>
+            </div>
+            <div class="result-wave">
+                <svg viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,60 C360,100 1080,0 1440,60 L1440,100 L0,100 Z" fill="#0F0F1A"/>
+                </svg>
+            </div>
+        </section>
+        <div class="result-content">
+            <div class="result-section">
+                <div class="result-card">
+                    <h2>Wer du bist</h2>
+                    <p class="result-desc">${p.beschreibung}</p>
+                </div>
+            </div>
+            <div class="result-section">
+                <div class="result-card">
+                    <h2>Dein Profil im Überblick</h2>
+                    <div class="score-bars">
+                        ${Object.keys(pcts).map(t => `
+                        <div class="score-row">
+                            <div class="score-label"><span>${typInfo[t].emoji}</span><span>${typInfo[t].name}</span></div>
+                            <div class="score-bar-bg"><div class="score-bar-fill bar-${t}" data-w="${pcts[t]}"></div></div>
+                            <span class="score-pct">${pcts[t]}%</span>
+                        </div>`).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="result-section">
+                <div class="result-card">
+                    <h2>Berufe, die zu dir passen</h2>
+                    <div class="berufe-grid">
+                        ${p.berufe.map(b => `<div class="beruf-chip">${b}</div>`).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="result-section">
+                <div class="result-card">
+                    <h2>Deine nächsten Schritte</h2>
+                    <div class="steps-list">
+                        ${p.schritte.map((s,i) => `
+                        <div class="step-item">
+                            <div class="step-num">${i+1}</div>
+                            <p class="step-text">${s}</p>
+                        </div>`).join('')}
+                    </div>
+                </div>
+            </div>
+            <div class="result-section result-cta">
+                <button class="btn-primary" onclick="goHome(); startTest()">Test wiederholen →</button>
+                <p class="cta-hint">Teile dein Ergebnis mit Menschen, die dich kennen.</p>
+            </div>
+        </div>`;
+
+    // Animate bars
+    setTimeout(() => {
+        document.querySelectorAll('.score-bar-fill').forEach(b => {
+            b.style.width = b.dataset.w + '%';
+        });
+    }, 300);
+}
+</script>
+</body>
+</html>
