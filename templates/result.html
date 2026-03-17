@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowkompass – Dein Ergebnis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="page-result">
+
+    <nav class="navbar">
+        <a href="/" class="nav-back">← Neu starten</a>
+        <div class="nav-logo">🧭 Flowkompass</div>
+        <div></div>
+    </nav>
+
+    <main class="result-main">
+
+        <!-- Hero Result -->
+        <section class="result-hero typ-{{ result.typ }}">
+            <div class="result-hero-content">
+                <div class="result-badge">Dein Berufungs-Typ</div>
+                <div class="result-emoji">{{ result.profil.emoji }}</div>
+                <h1 class="result-name">{{ result.profil.name }}</h1>
+                <p class="result-tagline">{{ result.profil.tagline }}</p>
+            </div>
+            <div class="result-wave">
+                <svg viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,60 C360,100 1080,0 1440,60 L1440,100 L0,100 Z" fill="white"/>
+                </svg>
+            </div>
+        </section>
+
+        <div class="result-content">
+
+            <!-- Beschreibung -->
+            <section class="result-section">
+                <div class="result-card">
+                    <h2>Wer du bist</h2>
+                    <p class="result-desc">{{ result.profil.beschreibung }}</p>
+                </div>
+            </section>
+
+            <!-- Score-Visualisierung -->
+            <section class="result-section">
+                <div class="result-card">
+                    <h2>Dein Profil im Überblick</h2>
+                    <div class="score-bars">
+                        {% set typ_info = {
+                            'helfer': {'emoji': '💛', 'name': 'Herzmensch'},
+                            'schöpfer': {'emoji': '🎨', 'name': 'Schöpfer'},
+                            'denker': {'emoji': '🔭', 'name': 'Weiser'},
+                            'anführer': {'emoji': '🔥', 'name': 'Visionär'}
+                        } %}
+                        {% for typ, pct in result.percentages.items() %}
+                        <div class="score-row">
+                            <div class="score-label">
+                                <span class="score-emoji">{{ typ_info[typ].emoji }}</span>
+                                <span>{{ typ_info[typ].name }}</span>
+                            </div>
+                            <div class="score-bar-bg">
+                                <div class="score-bar-fill bar-{{ typ }}" style="width: 0%" data-width="{{ pct }}"></div>
+                            </div>
+                            <span class="score-pct">{{ pct }}%</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Berufe -->
+            <section class="result-section">
+                <div class="result-card">
+                    <h2>Berufe, die zu dir passen</h2>
+                    <div class="berufe-grid">
+                        {% for beruf in result.profil.berufe %}
+                        <div class="beruf-chip">{{ beruf }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nächste Schritte -->
+            <section class="result-section">
+                <div class="result-card steps-card">
+                    <h2>Deine nächsten Schritte</h2>
+                    <div class="steps-list">
+                        {% for schritt in result.profil.nächste_schritte %}
+                        <div class="step-item">
+                            <div class="step-num">{{ loop.index }}</div>
+                            <p class="step-text">{{ schritt }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <section class="result-section result-cta">
+                <a href="/" class="btn-primary">
+                    Test wiederholen →
+                </a>
+                <p class="cta-hint">Teile dein Ergebnis mit Menschen, die dich kennen.</p>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>🧭 Flowkompass – Dein Weg zu einem erfüllten Leben</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

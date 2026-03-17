@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowkompass – Dein Test</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="page-test">
+
+    <nav class="navbar">
+        <a href="/" class="nav-back">← Zurück</a>
+        <div class="nav-logo">🧭 Flowkompass</div>
+        <div class="nav-progress-text" id="progressText">Frage 1 / {{ total }}</div>
+    </nav>
+
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    </div>
+
+    <main class="test-main">
+        <form action="/ergebnis" method="POST" id="testForm">
+
+            {% for question in questions %}
+            <div class="question-slide {% if loop.index == 1 %}active{% endif %}" id="q-slide-{{ question.id }}" data-index="{{ loop.index }}">
+
+                <div class="question-header">
+                    <span class="question-number">{{ loop.index }} / {{ total }}</span>
+                    <span class="question-category">{{ question.category | title }}</span>
+                </div>
+
+                <h2 class="question-text">{{ question.text }}</h2>
+
+                <div class="options-grid">
+                    {% for option in question.options %}
+                    <label class="option-card" for="q{{ question.id }}_{{ loop.index }}">
+                        <input
+                            type="radio"
+                            name="q{{ question.id }}"
+                            id="q{{ question.id }}_{{ loop.index }}"
+                            value="{{ option.type }}"
+                            required
+                        >
+                        <div class="option-content">
+                            <div class="option-check">
+                                <span class="check-icon">✓</span>
+                            </div>
+                            <p class="option-text">{{ option.text }}</p>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="question-nav">
+                    {% if loop.index > 1 %}
+                    <button type="button" class="btn-prev" onclick="prevQuestion({{ loop.index }})">
+                        ← Zurück
+                    </button>
+                    {% else %}
+                    <div></div>
+                    {% endif %}
+
+                    {% if not loop.last %}
+                    <button type="button" class="btn-next" onclick="nextQuestion({{ loop.index }}, {{ total }})" id="btn-next-{{ loop.index }}">
+                        Weiter →
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn-submit" id="btn-submit">
+                        Mein Ergebnis anzeigen 🧭
+                    </button>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% endfor %}
+
+        </form>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        const totalQuestions = {{ total }};
+    </script>
+</body>
+</html>

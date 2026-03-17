@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowkompass – Finde deine Berufung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="page-home">
+
+    <nav class="navbar">
+        <div class="nav-logo">🧭 Flowkompass</div>
+    </nav>
+
+    <main class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Kostenloser Berufungskompass</div>
+            <h1 class="hero-title">
+                Was ist deine<br>
+                <span class="gradient-text">Berufung?</span>
+            </h1>
+            <p class="hero-subtitle">
+                In 8 Fragen entdeckst du deinen einzigartigen Typ – und welcher Weg
+                dich wirklich erfüllen wird. Keine richtigen oder falschen Antworten.
+                Nur Ehrlichkeit zu dir selbst.
+            </p>
+
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-num">8</span>
+                    <span class="stat-label">Fragen</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-num">4</span>
+                    <span class="stat-label">Berufungs-Typen</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-num">3 Min</span>
+                    <span class="stat-label">Dauer</span>
+                </div>
+            </div>
+
+            <a href="/test" class="btn-primary">
+                Meinen Kompass starten
+                <span class="btn-arrow">→</span>
+            </a>
+
+            <p class="hero-hint">Kostenlos · Kein Konto nötig · Sofortergebnis</p>
+        </div>
+
+        <div class="hero-visual">
+            <div class="compass-container">
+                <div class="compass">
+                    <div class="compass-ring outer"></div>
+                    <div class="compass-ring middle"></div>
+                    <div class="compass-ring inner"></div>
+                    <div class="compass-needle">🧭</div>
+                </div>
+                <div class="type-pill pill-1">💛 Herzmensch</div>
+                <div class="type-pill pill-2">🎨 Schöpfer</div>
+                <div class="type-pill pill-3">🔭 Weiser</div>
+                <div class="type-pill pill-4">🔥 Visionär</div>
+            </div>
+        </div>
+    </main>
+
+    <section class="typen-preview">
+        <h2 class="section-title">Die 4 Berufungs-Typen</h2>
+        <div class="typen-grid">
+            <div class="typ-card typ-helfer">
+                <div class="typ-emoji">💛</div>
+                <h3>Der Herzmensch</h3>
+                <p>Du lebst auf, wenn du Menschen wirklich helfen kannst.</p>
+            </div>
+            <div class="typ-card typ-schöpfer">
+                <div class="typ-emoji">🎨</div>
+                <h3>Der Schöpfer</h3>
+                <p>Du bringst Neues in die Welt – durch Kreativität und Vision.</p>
+            </div>
+            <div class="typ-card typ-denker">
+                <div class="typ-emoji">🔭</div>
+                <h3>Der Weise</h3>
+                <p>Du durchdringst komplexe Wahrheiten und machst sie sichtbar.</p>
+            </div>
+            <div class="typ-card typ-anführer">
+                <div class="typ-emoji">🔥</div>
+                <h3>Der Visionär</h3>
+                <p>Du reißt andere mit und bringst große Ideen zum Leben.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>🧭 Flowkompass – Dein Weg zu einem erfüllten Leben</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
